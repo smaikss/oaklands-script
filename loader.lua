@@ -1,10 +1,13 @@
 local CoreGui = game:GetService("CoreGui")
 
--- Видаляємо стару GUI, якщо вона є
+-- Твоє посилання з Render
+local RENDER_API = "https://my-keys-api.onrender.com/check?key="
+
+-- Очищення старого GUI перед запуском
 pcall(function()
-	if CoreGui:FindFirstChild("OaklandsKey") then
-		CoreGui.OaklandsKey:Destroy()
-	end
+    if CoreGui:FindFirstChild("OaklandsKey") then
+        CoreGui.OaklandsKey:Destroy()
+    end
 end)
 
 local gui = Instance.new("ScreenGui")
@@ -39,7 +42,7 @@ close.TextColor3 = Color3.new(1,1,1)
 close.BorderSizePixel = 0
 
 close.MouseButton1Click:Connect(function()
-	gui:Destroy()
+    gui:Destroy()
 end)
 
 local box = Instance.new("TextBox")
@@ -83,48 +86,44 @@ keyBtn.TextColor3 = Color3.new(1,1,1)
 keyBtn.BorderSizePixel = 0
 
 keyBtn.MouseButton1Click:Connect(function()
-	setclipboard("https://scriptland.rf.gd")
-	status.Text = "Link copied"
+    setclipboard("https://discord.gg/yourlink") -- Сюди свою посилку на дс
+    status.Text = "Link copied"
 end)
 
 btn.MouseButton1Click:Connect(function()
-	local key = box.Text
+    local key = box.Text
 
-	if key == "" then
-		status.Text = "Enter key"
-		return
-	end
+    if key == "" then
+        status.Text = "Enter key"
+        return
+    end
 
-	status.Text = "Checking..."
+    status.Text = "Checking..."
 
-	local ok, result = pcall(function()
-		-- Додаємо випадкове число, щоб уникнути кешування результату
-		return game:HttpGet("https://scriptland.rf.gd/check.php?key="..key.."&cb="..math.random(1,9999))
-	end)
+    local ok, result = pcall(function()
+        -- Спеціальний параметр nocache, щоб сервер не видавав старий результат
+        return game:HttpGet(RENDER_API .. key .. "&nocache=" .. math.random(1,99999))
+    end)
 
-	if not ok then
-		status.Text = "Server offline"
-		warn("Error fetching key: "..tostring(result))
-		return
-	end
+    if not ok then
+        -- Якщо Render "спить", HttpGet видасть помилку. Просимо юзера почекати.
+        status.Text = "Server waking up... wait 20s"
+        warn("Render connection error: "..tostring(result))
+        return
+    end
 
-	-- Обробка результату
-	local rawResponse = tostring(result)
-	local cleanResult = rawResponse:gsub("%s+", ""):upper()
-	
-	-- Для дебагу: виведемо в консоль (F9), що саме прийшло від сайту
-	print("Server Response: [" .. rawResponse .. "]")
+    local response = tostring(result):gsub("%s+", ""):upper()
+    print("Server Response: [" .. response .. "]") -- Вивід у консоль F9
 
-	if string.find(cleanResult, "VALID") then
-		status.Text = "✅ Success!"
-		wait(0.7)
-		gui:Destroy()
-		
-		-- Завантаження твого основного скрипта
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/smaikss/oaklands-script/main/main.lua"))()
-	elseif string.find(cleanResult, "EXPIRED") then
-		status.Text = "❌ Key expired"
-	else
-		status.Text = "❌ Invalid key"
-	end
+    if response == "VALID" then
+        status.Text = "✅ Success!"
+        wait(0.7)
+        gui:Destroy()
+        -- Твій основний скрипт
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/smaikss/oaklands-script/main/main.lua"))()
+    elseif response == "EXPIRED" then
+        status.Text = "❌ Key expired"
+    else
+        status.Text = "❌ Invalid key"
+    end
 end)

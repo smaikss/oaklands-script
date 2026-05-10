@@ -1,60 +1,128 @@
 local CoreGui = game:GetService("CoreGui")
 
+pcall(function()
+	if CoreGui:FindFirstChild("OaklandsKey") then
+		CoreGui.OaklandsKey:Destroy()
+	end
+end)
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "OaklandsKey"
+gui.ResetOnSpawn = false
 gui.Parent = CoreGui
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,320,0,190)
-frame.Position = UDim2.new(0.5,-160,0.5,-95)
+local frame = Instance.new("Frame")
+frame.Parent = gui
+frame.Size = UDim2.new(0,320,0,210)
+frame.Position = UDim2.new(0.5,-160,0.5,-105)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.BorderSizePixel = 0
 
-local title = Instance.new("TextLabel", frame)
+local title = Instance.new("TextLabel")
+title.Parent = frame
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundColor3 = Color3.fromRGB(15,15,15)
 title.Text = "🔑 Oaklands Login"
 title.TextColor3 = Color3.new(1,1,1)
 title.TextScaled = true
+title.BorderSizePixel = 0
 
-local box = Instance.new("TextBox", frame)
+local close = Instance.new("TextButton")
+close.Parent = frame
+close.Size = UDim2.new(0,35,0,35)
+close.Position = UDim2.new(1,-38,0,2)
+close.Text = "X"
+close.TextScaled = true
+close.BackgroundColor3 = Color3.fromRGB(170,0,0)
+close.TextColor3 = Color3.new(1,1,1)
+close.BorderSizePixel = 0
+
+close.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+local box = Instance.new("TextBox")
+box.Parent = frame
 box.Size = UDim2.new(0,280,0,40)
 box.Position = UDim2.new(0,20,0,60)
 box.PlaceholderText = "Enter key..."
 box.Text = ""
 box.TextScaled = true
+box.BackgroundColor3 = Color3.fromRGB(40,40,40)
+box.TextColor3 = Color3.new(1,1,1)
+box.BorderSizePixel = 0
 
-local status = Instance.new("TextLabel", frame)
+local status = Instance.new("TextLabel")
+status.Parent = frame
 status.Size = UDim2.new(1,0,0,25)
-status.Position = UDim2.new(0,0,0,105)
+status.Position = UDim2.new(0,0,0,108)
 status.BackgroundTransparency = 1
 status.Text = ""
+status.TextScaled = true
 status.TextColor3 = Color3.new(1,1,1)
 
-local btn = Instance.new("TextButton", frame)
+local btn = Instance.new("TextButton")
+btn.Parent = frame
 btn.Size = UDim2.new(0,280,0,40)
-btn.Position = UDim2.new(0,20,0,135)
+btn.Position = UDim2.new(0,20,0,140)
 btn.Text = "LOGIN"
 btn.TextScaled = true
 btn.BackgroundColor3 = Color3.fromRGB(0,170,0)
 btn.TextColor3 = Color3.new(1,1,1)
+btn.BorderSizePixel = 0
+
+local copyBtn = Instance.new("TextButton")
+copyBtn.Parent = frame
+copyBtn.Size = UDim2.new(0,280,0,25)
+copyBtn.Position = UDim2.new(0,20,0,183)
+copyBtn.Text = "Get Key"
+copyBtn.TextScaled = true
+copyBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+copyBtn.TextColor3 = Color3.new(1,1,1)
+copyBtn.BorderSizePixel = 0
+
+copyBtn.MouseButton1Click:Connect(function()
+	setclipboard("https://scriptland.rf.gd")
+	status.Text = "Link copied"
+end)
 
 btn.MouseButton1Click:Connect(function()
 
 	local key = box.Text
 
+	if key == "" then
+		status.Text = "Enter key"
+		return
+	end
+
 	status.Text = "Checking..."
 
-	wait(0.7)
+	local ok, result = pcall(function()
+		return game:HttpGet("https://scriptland.rf.gd/check.php?key="..key)
+	end)
 
-	if key == "VLAD123" then
+	if not ok then
+		status.Text = "Server offline"
+		return
+	end
+
+	result = tostring(result)
+
+	if string.find(result,"VALID") then
+
 		status.Text = "Success!"
-		wait(0.5)
+		wait(0.7)
 		gui:Destroy()
 
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/smaikss/oaklands-script/main/main.lua"))()
 
+	elseif string.find(result,"EXPIRED") then
+
+		status.Text = "Key expired"
+
 	else
+
 		status.Text = "Invalid key"
+
 	end
 end)

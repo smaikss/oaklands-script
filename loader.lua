@@ -1,5 +1,6 @@
 local CoreGui = game:GetService("CoreGui")
 
+-- Видаляємо стару GUI, якщо вона є
 pcall(function()
 	if CoreGui:FindFirstChild("OaklandsKey") then
 		CoreGui.OaklandsKey:Destroy()
@@ -87,7 +88,6 @@ keyBtn.MouseButton1Click:Connect(function()
 end)
 
 btn.MouseButton1Click:Connect(function()
-
 	local key = box.Text
 
 	if key == "" then
@@ -98,32 +98,33 @@ btn.MouseButton1Click:Connect(function()
 	status.Text = "Checking..."
 
 	local ok, result = pcall(function()
-		return game:HttpGet("https://scriptland.rf.gd/check.php?key="..key)
+		-- Додаємо випадкове число, щоб уникнути кешування результату
+		return game:HttpGet("https://scriptland.rf.gd/check.php?key="..key.."&cb="..math.random(1,9999))
 	end)
 
 	if not ok then
 		status.Text = "Server offline"
+		warn("Error fetching key: "..tostring(result))
 		return
 	end
 
-	result = tostring(result)
-	result = result:gsub("%s+", ""):upper()
+	-- Обробка результату
+	local rawResponse = tostring(result)
+	local cleanResult = rawResponse:gsub("%s+", ""):upper()
+	
+	-- Для дебагу: виведемо в консоль (F9), що саме прийшло від сайту
+	print("Server Response: [" .. rawResponse .. "]")
 
-	if result == "VALID" then
-
-		status.Text = "Success!"
+	if string.find(cleanResult, "VALID") then
+		status.Text = "✅ Success!"
 		wait(0.7)
 		gui:Destroy()
-
+		
+		-- Завантаження твого основного скрипта
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/smaikss/oaklands-script/main/main.lua"))()
-
-	elseif result == "EXPIRED" then
-
-		status.Text = "Key expired"
-
+	elseif string.find(cleanResult, "EXPIRED") then
+		status.Text = "❌ Key expired"
 	else
-
-		status.Text = "Invalid key"
-
+		status.Text = "❌ Invalid key"
 	end
 end)

@@ -71,17 +71,17 @@ btn.BackgroundColor3 = Color3.fromRGB(0,170,0)
 btn.TextColor3 = Color3.new(1,1,1)
 btn.BorderSizePixel = 0
 
-local copyBtn = Instance.new("TextButton")
-copyBtn.Parent = frame
-copyBtn.Size = UDim2.new(0,280,0,25)
-copyBtn.Position = UDim2.new(0,20,0,183)
-copyBtn.Text = "Get Key"
-copyBtn.TextScaled = true
-copyBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-copyBtn.TextColor3 = Color3.new(1,1,1)
-copyBtn.BorderSizePixel = 0
+local keyBtn = Instance.new("TextButton")
+keyBtn.Parent = frame
+keyBtn.Size = UDim2.new(0,280,0,25)
+keyBtn.Position = UDim2.new(0,20,0,183)
+keyBtn.Text = "Get Key"
+keyBtn.TextScaled = true
+keyBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+keyBtn.TextColor3 = Color3.new(1,1,1)
+keyBtn.BorderSizePixel = 0
 
-copyBtn.MouseButton1Click:Connect(function()
+keyBtn.MouseButton1Click:Connect(function()
 	setclipboard("https://scriptland.rf.gd")
 	status.Text = "Link copied"
 end)
@@ -107,8 +107,9 @@ btn.MouseButton1Click:Connect(function()
 	end
 
 	result = tostring(result)
+	result = result:gsub("%s+", ""):upper()
 
-	if string.find(result,"VALID") then
+	if result == "VALID" then
 
 		status.Text = "Success!"
 		wait(0.7)
@@ -116,7 +117,7 @@ btn.MouseButton1Click:Connect(function()
 
 		loadstring(game:HttpGet("https://raw.githubusercontent.com/smaikss/oaklands-script/main/main.lua"))()
 
-	elseif string.find(result,"EXPIRED") then
+	elseif result == "EXPIRED" then
 
 		status.Text = "Key expired"
 

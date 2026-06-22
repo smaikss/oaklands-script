@@ -1,11 +1,27 @@
 local CoreGui = game:GetService("CoreGui")
 
--- Твоє посилання з Render (вже налаштоване під твій проект)
-local RENDER_API = "https://my-keys-api.onrender.com/check?key="
--- Твоє посилання на Discord
+-- =====================================================================
+-- ЗАХИЩЕНІ НАЛАШТУВАННЯ (Усе зашифровано в байти 👍)
+-- =====================================================================
 local DISCORD_LINK = "https://discord.gg/JdTdKv5mdb"
 
--- Очищення старого GUI, якщо він залишився після попереднього запуску
+-- 1. Твоє точне посилання на Render API в байтах (БЕЗ ПОМИЛОК)
+local RENDER_BYTES = {104,116,116,112,115,58,47,47,109,121,45,107,101,121,115,45,97,112,105,46,111,110,114,101,110,100,101,114,46,99,111,109,47,99,104,101,99,107,63,107,101,121,61}
+
+-- 2. Твоє точне посилання на чит GitHub в байтах
+local SCRIPT_BYTES = {104,116,116,112,115,58,47,47,114,97,119,46,103,105,116,104,117,98,117,115,101,114,99,111,110,116,101,110,116,46,99,111,109,47,115,109,97,105,107,115,115,47,111,97,107,108,97,110,100,115,45,115,99,114,105,112,116,47,109,97,105,110,47,109,97,105,110,46,108,117,97}
+-- =====================================================================
+
+-- Функція дешифрування посилань у пам'яті експлоїта
+local function decodeBytes(bytesTable)
+    local chars = {}
+    for _, b in ipairs(bytesTable) do
+        table.insert(chars, string.char(b))
+    end
+    return table.concat(chars)
+end
+
+-- Очищення старого GUI, якщо він залишився
 pcall(function()
     if CoreGui:FindFirstChild("OaklandsKey") then
         CoreGui.OaklandsKey:Destroy()
@@ -87,7 +103,6 @@ keyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 keyBtn.TextColor3 = Color3.new(1, 1, 1)
 keyBtn.BorderSizePixel = 0
 
--- Кнопка для отримання ключа через Discord
 keyBtn.MouseButton1Click:Connect(function()
     if setclipboard then
         setclipboard(DISCORD_LINK)
@@ -108,28 +123,38 @@ btn.MouseButton1Click:Connect(function()
 
     status.Text = "Checking..."
 
+    -- Збираємо лінк API докупи прямо в пам'яті
+    local apiUrl = decodeBytes(RENDER_BYTES)
+
     local ok, result = pcall(function()
-        -- Запит до твого сервера Render з параметром nocache
-        return game:HttpGet(RENDER_API .. key .. "&nocache=" .. math.random(1, 99999))
+        return game:HttpGet(apiUrl .. key .. "&nocache=" .. math.random(1, 99999))
     end)
 
     if not ok then
-        -- Якщо Render спить (Free Tier), він прокидається близько 30 секунд
         status.Text = "Server waking up... wait 30s"
         warn("Render wake-up required: " .. tostring(result))
         return
     end
 
-    -- Обробка відповіді: прибираємо зайві пробіли та переводимо у верхній регістр
     local response = tostring(result):gsub("%s+", ""):upper()
-    print("Server Response: [" .. response .. "]") -- Можна перевірити через F9
 
     if response == "VALID" then
         status.Text = "✅ Success!"
-        wait(0.7)
+        task.wait(0.5)
         gui:Destroy()
-        -- Завантаження твого основного скрипта з GitHub
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/smaikss/oaklands-script/main/main.lua"))()
+        
+        -- Збираємо лінк на GitHub скрипт прямо в пам'яті
+        local scriptUrl = decodeBytes(SCRIPT_BYTES)
+        
+        local scriptOk, scriptContent = pcall(function()
+            return game:HttpGet(scriptUrl)
+        end)
+        
+        if scriptOk then
+            assert(loadstring(scriptContent))()
+        else
+            warn("Error loading main script from protected URL")
+        end
     elseif response == "EXPIRED" then
         status.Text = "❌ Key expired"
     else
